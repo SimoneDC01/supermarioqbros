@@ -1,0 +1,37 @@
+<!-- dist/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Graphics Project</title>
+  <style>
+    body{
+      margin: 0;
+    }
+    #coinCounter {
+        position: absolute;
+        top: 30px;
+        left: 40px;
+        display: flex;
+        align-items: center;
+        font-size: 48px;
+        color: white;
+    }
+    
+    #coinImage {
+        width: 40px;
+        height: 48px;
+        margin-right: 8px;
+    }
+    </style>
+    
+</head>
+<body>
+  <script src="bundle.js"></script>
+    <div id="coinCounter">
+      <img id="coinImage" src="../../img/coin_transparent.png" alt="Coin">
+      <span id="coinCount">0</span>
+    </div>
+</body>
+</html>

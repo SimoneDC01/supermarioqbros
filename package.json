@@ -1,0 +1,17 @@
+{
+  "name": "interactive-graphics-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack"
+  },
+  "devDependencies": {
+    "webpack": "^5.0.0",
+    "webpack-cli": "^4.0.0"
+  },
+  "dependencies": {
+    "dat.gui": "^0.7.9",
+    "three": "^0.164.1"
+  }
+}
