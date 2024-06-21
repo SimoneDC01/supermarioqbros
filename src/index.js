@@ -61,10 +61,15 @@ directionalLight2.shadow.bias = -0.001;
 directionalLight2.shadow.mapSize.width = 4096;
 directionalLight2.shadow.mapSize.height = 4096;
 
+var settings = {
+    zoom: 1.0
+}
+
 // GUI setup
 const gui = new dat.GUI();
 gui.add(directionalLight1, 'intensity', 0, 10).name('FrontLight');
 gui.add(directionalLight2, 'intensity', 0, 10).name('TopLight');
+gui.add(settings, 'zoom', 0.5, 2).name('Zoom')
 
 // Configure GLTFLoader with DRACOLoader
 const loader = new GLTFLoader();
@@ -285,7 +290,7 @@ function handleCollisions(character, collisions){
 
         if (isGoal(collision.name)) startWin();
 
-        if (collision.name == 'Pipe_4' && keysPressed['ArrowDown']) startTeleport();
+        if (collision.name == 'Pipe_4' && (keysPressed['ArrowDown'] || keysPressed['s'])) startTeleport();
     });
 }
 
@@ -365,7 +370,7 @@ function win(){
 function startFinalAnimation(){
     const startZ = mario.character.position.z;
     const endZ = 1.8;
-    const duration = 1000; // 1 second
+    const duration = 1700; // 1.7 seconds
     const startTime = performance.now();
 
     function animate() {
@@ -386,7 +391,7 @@ function startFinalAnimation(){
 function continueFinalAnimation(){
     const startX = mario.character.position.x;
     const endX = 120.5;
-    const duration = 2000; // 1 second
+    const duration = 1500; // 1.5 seconds
     const startTime = performance.now();
 
     function animate() {
@@ -407,7 +412,7 @@ function continueFinalAnimation(){
 function endFinalAnimation(){
     const startZ = mario.character.position.z;
     const endZ = 0;
-    const duration = 1000; // 1 second
+    const duration = 2000; // 2 seconds
     const startTime = performance.now();
 
     function animate() {
@@ -878,15 +883,20 @@ function animate() {
     
     if (! mario.isTeleporting && mario.state != 'ko'){
         // Update Mario's speed based on key presses
-        if (keysPressed['ArrowLeft'] && !mario.isGroundpounding && mario.state != 'ko') mario.speed.x -= mario.speedCoeff;
-        if (keysPressed['ArrowRight'] && !mario.isGroundpounding && mario.state != 'ko') mario.speed.x += mario.speedCoeff;
 
-        if (keysPressed[' '] && !mario.isJumping){
+        if (keysPressed['z'] && settings.zoom < 5) settings.zoom += 0.01;
+        if (keysPressed['x'] && settings.zoom > 0.1) settings.zoom -= 0.01;
+        if (keysPressed['r']) settings.zoom = 1;
+
+        if (keysPressed['ArrowLeft'] || keysPressed['a'] && !mario.isGroundpounding && mario.state != 'ko') mario.speed.x -= mario.speedCoeff;
+        if (keysPressed['ArrowRight'] || keysPressed['d'] && !mario.isGroundpounding && mario.state != 'ko') mario.speed.x += mario.speedCoeff;
+
+        if ((keysPressed[' '] || keysPressed['ArrowUp'] || keysPressed['w']) && !mario.isJumping){
             mario.jump()
             jumpSound.play();
         }
 
-        if (keysPressed['Enter'] && mario.isJumping && !mario.isGroundpounding) { // Change to space. Add zoom? [TO-DO]
+        if ((keysPressed['ArrowDown'] || keysPressed['Enter'] || keysPressed['s']) && mario.isJumping && !mario.isGroundpounding) { //Add zoom? [TO-DO]
             mario.speed.y = 0;
             mario.isGroundpounding = true;
             mario.gravity = 0;
@@ -920,7 +930,7 @@ function animate() {
     }
 
     // Update controls target to Mario's position
-    camera.position.set(mario.character.position.x, mario.character.position.y + 15, mario.character.position.z + 20);
+    camera.position.set(mario.character.position.x, mario.character.position.y + (15 / settings.zoom), mario.character.position.z + (20 / settings.zoom));
     camera.lookAt(mario.character.position);
 
     renderer.render(scene, camera);
