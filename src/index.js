@@ -61,11 +61,11 @@ directionalLight2.shadow.bias = -0.001;
 directionalLight2.shadow.mapSize.width = 4096;
 directionalLight2.shadow.mapSize.height = 4096;
 
+// GUI setup
 var settings = {
     zoom: 1.0
 }
 
-// GUI setup
 const gui = new dat.GUI();
 gui.add(directionalLight1, 'intensity', 0, 10).name('FrontLight');
 gui.add(directionalLight2, 'intensity', 0, 10).name('TopLight');
@@ -74,9 +74,10 @@ gui.add(settings, 'zoom', 0.5, 2).name('Zoom')
 // Configure GLTFLoader with DRACOLoader
 const loader = new GLTFLoader();
 const dracoLoader = new DRACOLoader();
-dracoLoader.setDecoderPath('/utils/draco/'); // Update the path to the Draco decoder files
+dracoLoader.setDecoderPath('/utils/draco/');
 loader.setDRACOLoader(dracoLoader);
 
+// Load environment
 let environmentBoundingBoxes = [];
 
 function createBoundingBoxForEnvironmentObject(object) {
@@ -118,6 +119,7 @@ function loadGLTFModel() {
     });
 }
 
+// Load textures
 const textureLoader = new THREE.TextureLoader();
 const marioTexture = textureLoader.load('../../img/mario.png');
 const fireMarioTexture = textureLoader.load('../../img/fire_mario.png');
@@ -125,7 +127,7 @@ const goombaTexture = textureLoader.load('../../img/goomba.png');
 
 // Load models and start animation
 const mario = new Mario(scene, -100, new THREE.Euler(0, 0, 0), 0.5, marioTexture);
-const enemy1 = new Enemy(scene, -82, new THREE.Euler(0, 0, 0), 0.8, goombaTexture, 1, 1, 'Enemy1'); // [TODO] Decide color
+const enemy1 = new Enemy(scene, -82, new THREE.Euler(0, 0, 0), 0.8, goombaTexture, 1, 1, 'Enemy1');
 const enemy2 = new Enemy(scene, -59.35, new THREE.Euler(0, 0, 0), 0.8, goombaTexture, 1, 1.5, 'Enemy2');
 const enemy3 = new Enemy(scene, -49.2, new THREE.Euler(0, 0, 0), 0.8, goombaTexture, 1, 2.1, 'Enemy3');
 const enemy4 = new Enemy(scene, -48.3, new THREE.Euler(0, 0, 0), 0.8, goombaTexture, 1, 2.1, 'Enemy4');
@@ -141,11 +143,13 @@ let enemies = [enemy1, enemy2, enemy3, enemy4, enemy5, enemy6, enemy7, enemy8, e
 let defeatedEnemies = [];
 
 Promise.all([loadGLTFModel(), mario.loadModel(), ...enemies.map(enemy => enemy.loadModel())]).then(() => {
+    // Make enemies collidable
     enemies.forEach(enemy => {
         const enemyBoundingBox = new THREE.Box3().setFromObject(enemy.character);
         environmentBoundingBoxes.push({boundingBox: enemyBoundingBox, name: enemy.name});
     });
 
+    // Start the animation
     displayStartScreen();
 });
 
@@ -159,6 +163,7 @@ window.addEventListener('keyup', (event) => {
     keysPressed[event.key] = false;
 });
 
+// Return name, side and distance of the collision
 function checkCollisions(character) {
     var collisions = [];
     for (const {boundingBox, name} of environmentBoundingBoxes) {
@@ -294,18 +299,19 @@ function handleCollisions(character, collisions){
     });
 }
 
-let lastDamageTime = 0;  // Variabile per tenere traccia del tempo dell'ultima esecuzione
-const damageCooldown = 2000;  // Cooldown di 1 secondo in millisecondi
+let lastDamageTime = 0;
+const damageCooldown = 2000;  // Cooldown of two seconds
 
+// Handle damage
 function takeDamage(){
     if (mario.state == 'ko') return;
 
     const currentTime = performance.now();
     if (currentTime - lastDamageTime < damageCooldown) {
-        return;  // Esci dalla funzione se il cooldown non è ancora trascorso
+        return;
     }
 
-    lastDamageTime = currentTime;  // Aggiorna il tempo dell'ultima esecuzione
+    lastDamageTime = currentTime;
 
     if(mario.state == 'small'){
         gameOver();
@@ -432,26 +438,25 @@ function endFinalAnimation(){
 }
 
 function displayEndScreen() {
-    // Creare un elemento div per la schermata di fine livello
+    // Create a div element for the end screen
     var endScreen = document.createElement('div');
     
-    // Impostare stile del div
+    // Set style of the div
     endScreen.style.position = 'fixed';
     endScreen.style.top = '0';
     endScreen.style.left = '0';
     endScreen.style.width = '100%';
     endScreen.style.height = '100%';
-    endScreen.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'; // Sfondo semi-trasparente
+    endScreen.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'; // Semi-transparent background
     endScreen.style.display = 'flex';
     endScreen.style.justifyContent = 'center';
     endScreen.style.alignItems = 'center';
-    endScreen.style.zIndex = '1000'; // Assicurarsi che sia davanti a tutto
+    endScreen.style.zIndex = '1000';
     
-    // Creare un elemento h1 con il testo "You won!"
+    // Create an h1 element with the text "You won!"
     var message = document.createElement('h1');
     message.innerText = 'You won!\nPress [Space] to restart';
     
-    // Impostare stile dell'elemento h1
     message.style.color = 'white';
     message.style.fontSize = '60px';
     message.style.fontFamily = 'Arial, sans-serif';
@@ -462,19 +467,16 @@ function displayEndScreen() {
     message.style.webkitTextFillColor = 'transparent'; // Rendi il colore del testo trasparente per mostrare il gradiente
     message.style.animation = 'glow 1.5s ease-in-out infinite alternate'; // Animazione del testo
     
-    // Aggiungere l'animazione al testo
     var style = document.createElement('style');
     style.type = 'text/css';
     style.innerHTML = '@keyframes glow { from { text-shadow: 0 0 10px #ffcc00, 0 0 20px #ffcc00; } to { text-shadow: 0 0 20px #ff0000, 0 0 30px #ff0000; } }';
     document.getElementsByTagName('head')[0].appendChild(style);
     
-    // Appendere l'elemento h1 al div
     endScreen.appendChild(message);
     
-    // Appendere il div al body del documento
     document.body.appendChild(endScreen);
 
-    // Aggiungere un listener per l'evento `keydown` per ricaricare la pagina quando si preme la barra spaziatrice
+    // Add a listener for the `keydown` event to reload the page when the space bar is pressed
     function restartGame(event) {
         if (event.code === 'Space') location.reload();
     }
@@ -482,10 +484,10 @@ function displayEndScreen() {
 }
 
 function displayStartScreen() {
-    // Creare un elemento div per la schermata di benvenuto
+    // Create a div element for the start screen
     var startScreen = document.createElement('div');
     
-    // Impostare stile del div
+    // Set style of the div
     startScreen.style.position = 'fixed';
     startScreen.style.top = '0';
     startScreen.style.left = '0';
@@ -497,34 +499,30 @@ function displayStartScreen() {
     startScreen.style.alignItems = 'center';
     startScreen.style.zIndex = '1000'; // Assicurarsi che sia davanti a tutto
     
-    // Creare un elemento h1 con il testo "Super Mario CuBros! Press [Space] to start"
+    // Create an h1 element with the title
     var message = document.createElement('h1');
     message.innerText = 'Super Mario QBros!\nPress [Space] to start';
     
-    // Impostare stile dell'elemento h1
     message.style.color = 'white';
     message.style.fontSize = '60px';
     message.style.fontFamily = 'Arial, sans-serif';
     message.style.textAlign = 'center';
-    message.style.textShadow = '2px 2px 4px #000000'; // Ombra del testo meno invasiva
-    message.style.background = 'linear-gradient(to right, #ffcc00, #ff0000)'; // Gradiente del testo
-    message.style.webkitBackgroundClip = 'text'; // Clip di background per testo
-    message.style.webkitTextFillColor = 'transparent'; // Rendi il colore del testo trasparente per mostrare il gradiente
-    message.style.animation = 'glow 1.5s ease-in-out infinite alternate'; // Animazione del testo
+    message.style.textShadow = '2px 2px 4px #000000';
+    message.style.background = 'linear-gradient(to right, #ffcc00, #ff0000)';
+    message.style.webkitBackgroundClip = 'text';
+    message.style.webkitTextFillColor = 'transparent';
+    message.style.animation = 'glow 1.5s ease-in-out infinite alternate';
     
-    // Aggiungere l'animazione al testo
     var style = document.createElement('style');
     style.type = 'text/css';
     style.innerHTML = '@keyframes glow { from { text-shadow: 0 0 10px #ffcc00, 0 0 20px #ffcc00; } to { text-shadow: 0 0 20px #ff0000, 0 0 30px #ff0000; } }';
     document.getElementsByTagName('head')[0].appendChild(style);
     
-    // Appendere l'elemento h1 al div
     startScreen.appendChild(message);
     
-    // Appendere il div al body del documento
     document.body.appendChild(startScreen);
     
-    // Aggiungere un listener per l'evento `keydown` per rimuovere il div quando si preme la barra spaziatrice
+    // Add a listener for the `keydown` event to start the game when the space bar is pressed
     function startGame(event) {
         if (event.code === 'Space') {
             document.body.removeChild(startScreen);
@@ -538,49 +536,45 @@ function displayStartScreen() {
 }
 
 function displayGameoverScreen() {
-    // Creare un elemento div per la schermata di fine livello
+    // Create a div element for the end screen
     var endScreen = document.createElement('div');
     
-    // Impostare stile del div
+    // Set style of the div
     endScreen.style.position = 'fixed';
     endScreen.style.top = '0';
     endScreen.style.left = '0';
     endScreen.style.width = '100%';
     endScreen.style.height = '100%';
-    endScreen.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'; // Sfondo semi-trasparente
+    endScreen.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
     endScreen.style.display = 'flex';
     endScreen.style.justifyContent = 'center';
     endScreen.style.alignItems = 'center';
-    endScreen.style.zIndex = '1000'; // Assicurarsi che sia davanti a tutto
+    endScreen.style.zIndex = '1000';
     
-    // Creare un elemento h1 con il testo "You won!"
+    // Create an h1 element with the text "You lost!"
     var message = document.createElement('h1');
     message.innerText = 'You lost!\nPress [Space] to restart';
     
-    // Impostare stile dell'elemento h1
     message.style.color = 'white';
     message.style.fontSize = '60px';
     message.style.fontFamily = 'Arial, sans-serif';
     message.style.textAlign = 'center';
-    message.style.textShadow = '2px 2px 4px #000000'; // Ombra del testo
-    message.style.background = 'linear-gradient(to right, #ffcc00, #ff0000)'; // Gradiente del testo
-    message.style.webkitBackgroundClip = 'text'; // Clip di background per testo
-    message.style.webkitTextFillColor = 'transparent'; // Rendi il colore del testo trasparente per mostrare il gradiente
-    message.style.animation = 'glow 1.5s ease-in-out infinite alternate'; // Animazione del testo
+    message.style.textShadow = '2px 2px 4px #000000';
+    message.style.background = 'linear-gradient(to right, #ffcc00, #ff0000)';
+    message.style.webkitBackgroundClip = 'text';
+    message.style.webkitTextFillColor = 'transparent';
+    message.style.animation = 'glow 1.5s ease-in-out infinite alternate';
     
-    // Aggiungere l'animazione al testo
     var style = document.createElement('style');
     style.type = 'text/css';
     style.innerHTML = '@keyframes glow { from { text-shadow: 0 0 10px #ffcc00, 0 0 20px #ffcc00; } to { text-shadow: 0 0 20px #ff0000, 0 0 30px #ff0000; } }';
     document.getElementsByTagName('head')[0].appendChild(style);
     
-    // Appendere l'elemento h1 al div
     endScreen.appendChild(message);
     
-    // Appendere il div al body del documento
     document.body.appendChild(endScreen);
 
-    // Aggiungere un listener per l'evento `keydown` per ricaricare la pagina quando si preme la barra spaziatrice
+    // Add a listener for the `keydown` event to reload the page when the space bar is pressed
     function restartGame(event) {
         if (event.code === 'Space') location.reload();
     }
@@ -712,7 +706,7 @@ function startGroundpound() {
     rotationStartTime = performance.now();
     function animate(){
         const currentTime = performance.now();
-        const elapsedTime = (currentTime - rotationStartTime) / 1000;  // Convert to seconds
+        const elapsedTime = (currentTime - rotationStartTime) / 1000;
         if (elapsedTime < mario.rotationDuration) {
             const rotationAngle = (elapsedTime / mario.rotationDuration) * Math.PI * 2;
             mario.character.rotation.x = rotationAngle;
@@ -896,7 +890,7 @@ function animate() {
             jumpSound.play();
         }
 
-        if ((keysPressed['ArrowDown'] || keysPressed['Enter'] || keysPressed['s']) && mario.isJumping && !mario.isGroundpounding) { //Add zoom? [TO-DO]
+        if ((keysPressed['ArrowDown'] || keysPressed['Enter'] || keysPressed['s']) && mario.isJumping && !mario.isGroundpounding) {
             mario.speed.y = 0;
             mario.isGroundpounding = true;
             mario.gravity = 0;
@@ -912,6 +906,7 @@ function animate() {
         mario.update();
     }
 
+    // Move enemies
     enemies.forEach(enemy => {
         enemy.update();
     });
